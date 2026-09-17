@@ -110,7 +110,8 @@ textarea{min-height:100px;resize:vertical}.btn{border:0;background:linear-gradie
         <div class="mediaBox"><b>شعار Verse</b><div class="preview"><img id="logoPreview" src="/verse-logo.png" alt="الشعار"></div><input class="file" id="logoFile" type="file" accept="image/*" onchange="previewFile(this,'logoPreview')"><button class="remove" onclick="removeMedia('logo')">إرجاع الافتراضي</button></div>
         <div class="mediaBox"><b>خلفية الصفحة الرئيسية</b><div class="preview"><img id="heroPreview" src="/approved-home-reference.png" alt="الخلفية"></div><input class="file" id="heroFile" type="file" accept="image/*" onchange="previewFile(this,'heroPreview')"><button class="remove" onclick="removeMedia('heroBg')">إرجاع الافتراضي</button></div>
         <div class="mediaBox"><b>خلفية قسم القصة</b><div class="preview"><img id="storyPreview" src="/approved-home-reference.png" alt="الخلفية"></div><input class="file" id="storyFile" type="file" accept="image/*" onchange="previewFile(this,'storyPreview')"><button class="remove" onclick="removeMedia('storyBg')">إرجاع الافتراضي</button></div>
-        <div class="mediaBox"><b>لون الهوية</b><input class="input" id="goldColor" type="color" value="#d6a33a"><p class="notice">اللون الذهبي الأساسي.</p></div>
+        <div class="mediaBox"><b>خلفية القسم الأوسط خلف المنتجات</b><div class="preview"><img id="middlePreview" src="/approved-home-reference.png" alt="خلفية المنتجات"></div><input class="file" id="middleFile" type="file" accept="image/*" onchange="previewFile(this,'middlePreview')"><button class="remove" onclick="removeMedia('middleBg')">إرجاع الافتراضي</button></div>
+        <div class="mediaBox"><b>لون الهوية</b><input class="input" id="goldColor" type="color" value="#d6a33a"><p class="notice">اللون الذهبي الأساسي.</p><button class="remove" onclick="resetGoldColor()">إرجاع اللون الافتراضي</button></div>
       </div>
     </div>
     <div class="card">
@@ -273,6 +274,7 @@ function fillSettings(){
   document.getElementById('logoPreview').src=settings.logo||'/verse-logo.png';
   document.getElementById('heroPreview').src=settings.heroBg||'/approved-home-reference.png';
   document.getElementById('storyPreview').src=settings.storyBg||'/approved-home-reference.png';
+  document.getElementById('middlePreview').src=settings.middleBg||'/approved-home-reference.png';
 }
 function previewFile(input,target){
   const f=input.files[0];if(!f)return;
@@ -281,15 +283,21 @@ function previewFile(input,target){
 async function saveSettings(){
   try{
     const data={whatsapp:document.getElementById('whatsapp').value.trim(),shippingText:document.getElementById('shippingText').value,about:document.getElementById('about').value,contact:document.getElementById('contact').value,goldColor:document.getElementById('goldColor').value};
-    const lf=document.getElementById('logoFile').files[0],hf=document.getElementById('heroFile').files[0],sf=document.getElementById('storyFile').files[0];
+    const lf=document.getElementById('logoFile').files[0],hf=document.getElementById('heroFile').files[0],sf=document.getElementById('storyFile').files[0],mf=document.getElementById('middleFile').files[0];
     if(lf)data.logo=await compressImage(lf,1000,.84);
     if(hf)data.heroBg=await compressImage(hf,1800,.78);
     if(sf)data.storyBg=await compressImage(sf,1800,.78);
+    if(mf)data.middleBg=await compressImage(mf,1800,.78);
     const np=document.getElementById('newpass').value;if(np)data.newpass=np;
     await api('/settings',{method:'PUT',body:JSON.stringify(data)});
-    document.getElementById('logoFile').value='';document.getElementById('heroFile').value='';document.getElementById('storyFile').value='';document.getElementById('newpass').value='';
+    document.getElementById('logoFile').value='';document.getElementById('heroFile').value='';document.getElementById('storyFile').value='';document.getElementById('middleFile').value='';document.getElementById('newpass').value='';
     await refreshAll();alert('تم حفظ الإعدادات في قاعدة البيانات');
   }catch(e){alert(e.message)}
+}
+async function resetGoldColor(){
+  const defaultColor='#d6a33a';
+  document.getElementById('goldColor').value=defaultColor;
+  try{await api('/settings',{method:'PUT',body:JSON.stringify({goldColor:defaultColor})});await refreshAll();alert('تم إرجاع لون الهوية الافتراضي');}catch(e){alert(e.message)}
 }
 async function removeMedia(key){
   if(!confirm('إرجاع الصورة الافتراضية؟'))return;
